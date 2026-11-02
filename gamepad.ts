@@ -108,7 +108,7 @@ namespace Gamepad {
         pins.setPull(DigitalPin.P13, PinPullMode.PullNone);
         pins.setPull(DigitalPin.P14, PinPullMode.PullNone);
         pins.setPull(DigitalPin.P15, PinPullMode.PullNone);
-        pins.setPull(DigitalPin.P16, PinPullMode.PullUp);
+        pins.setPull(DigitalPin.P16, PinPullMode.PullNone);
         pins.setPull(DigitalPin.P8, PinPullMode.PullNone);
         pinsInitialized = true;
     }
@@ -201,7 +201,7 @@ namespace Gamepad {
     }
 
     /**
-     * 控制震動馬達與指示燈開關 (P12)
+     * 控制震動馬達與指示燈開關 (P12 類比輸出)
      * @param state 開啟或關閉
      */
     //% blockId="gamepad_vibrator"
@@ -209,7 +209,21 @@ namespace Gamepad {
     //% weight=80
     export function vibrator(state: GamepadVibrator): void {
         initPins();
-        pins.digitalWritePin(DigitalPin.P12, state == GamepadVibrator.On ? 1 : 0);
+        pins.analogWritePin(AnalogPin.P12, state == GamepadVibrator.On ? 1023 : 0);
+    }
+
+    /**
+     * 設定震動馬達強度 (P12 類比輸出 0~1023)
+     * @param intensity 震動強度 (0~1023), eg: 1023
+     */
+    //% blockId="gamepad_vibrator_intensity"
+    //% block="震動馬達強度 %intensity"
+    //% intensity.min=0 intensity.max=1023 intensity.defl=1023
+    //% weight=75
+    export function vibrator_intensity(intensity: number): void {
+        initPins();
+        let val = Math.clamp(0, 1023, intensity);
+        pins.analogWritePin(AnalogPin.P12, val);
     }
 
     /**
