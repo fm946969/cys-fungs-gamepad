@@ -1,24 +1,15 @@
-
-> 在 [https://fm946969.github.io/cys-fungs-gamepad/](https://fm946969.github.io/cys-fungs-gamepad/) 打開此頁面
-
-## 作為擴充功能使用
-
-可以在 MakeCode 中將此儲存庫新增為**擴充功能**。
-
-* 開啟 [https://makecode.microbit.org/](https://makecode.microbit.org/)
-* 按一下**新專案**
-* 按一下工具齒輪選單下的**擴充功能**
-* 搜索 **https://github.com/fm946969/cys-fungs-gamepad** 並匯出
-
-## 編輯此專案
-
-編輯 MakeCode 中的儲存庫。
-
-* 開啟 [https://makecode.microbit.org/](https://makecode.microbit.org/)
-* 按一下**匯入**，然後按一下**匯入 URL**
-* 貼上 **https://github.com/fm946969/cys-fungs-gamepad** 並按一下匯入
-
-#### 中繼資料 (用於搜索、渲染)
-
-* for PXT/microbit
-<script src="https://makecode.com/gh-pages-embed.js"></script><script>makeCodeRender("{{ site.makecode.home_url }}", "{{ site.github.owner_name }}/{{ site.github.repository_name }}");</script>
+Function	Description
+Operating Voltage	3V DC (2 × AAA batteries)
+PWR	Power Indicator
+Power Switch	Power ON/OFF control
+Onboard Vibration Motor & LED	Control Pin: P12
+Buzzer	Control Pin: P0
+Button A	Control Pin: P5
+Button B	Control Pin: P11
+Button C	Control Pin: P13
+Button D	Control Pin: P14
+Button E	Control Pin: P15
+Button F	Control Pin: P16
+Joystick X-axis	Control Pin: P1 (Analog)
+Joystick Y-axis	Control Pin: P2 (Analog)
+Joystick Z-axis	Control Pin: P8 (Digital Switch)

@@ -1,6 +1,6 @@
 {
     "name": "cys-fungs-gamepad",
-    "description": "",
+    "description": "DFRobot DFR0536 micro:bit 遊戲手把擴充積木 (Gamepad Extension)",
     "dependencies": {
         "core": "*",
         "radio": "*",
