@@ -12,6 +12,8 @@ enum GamepadButtonEdge {
     Up = 1
 }
 
+//% group="接收端"
+//% weight=100 icon="\uf48b" block="接收端"
 namespace Gamepad {
     const noop = () => { };
     let stateReceivedHandler: (

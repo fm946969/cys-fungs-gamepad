@@ -50,7 +50,7 @@ enum GamepadJoystickAxis {
  * Gamepad 遊戲手把積木
  */
 //% weight=100 color=#0fbc11 icon="\uf11b" block="Gamepad"
-//% subcategories='["發送端", "接收端"]'
+//% groups='["發送端", "接收端"]'
 namespace Gamepad {
     export const __BUTTON_COUNT = 7;
     export const __BUTTON_NAMES = ["A", "B", "C", "D", "E", "F", "Z"];

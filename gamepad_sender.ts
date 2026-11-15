@@ -12,6 +12,8 @@ enum GamepadVibrator {
     Off = 0
 }
 
+//% group="發送端"
+//% weight=100 icon="\uf11b" block="發送端"
 namespace Gamepad {
     const BUTTON_PINS = [
         DigitalPin.P5,  // A
