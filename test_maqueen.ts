@@ -18,21 +18,12 @@ let rightLedOn = false
 radio.setGroup(1)
 maqueen.servoRun(maqueen.Servos.S1, servoAngle)
 
-Gamepad.on_gamepad_state_received(function (
-    X_val,
-    Y_val,
-    A_is_pressed,
-    B_is_pressed,
-    C_is_pressed,
-    D_is_pressed,
-    E_is_pressed,
-    F_is_pressed,
-    Z_is_pressed
-) {
-    // 1. 在車載 micro:bit LED 矩陣同步顯示收到的按鈕狀態
+// 1. 接收搖桿 X/Y 數值與持續按壓狀態
+Gamepad.on_joystick_received(function (X_val, Y_val) {
+    // 在車載 micro:bit LED 矩陣同步顯示收到的按鈕狀態
     Gamepad.show_button_state()
 
-    // 2. 搖桿控制馬達移動與速度 (類比比例控制)
+    // 搖桿控制馬達移動與速度 (類比比例控制)
     if (Y_val > 550 && (X_val > 400 && X_val < 600)) {
         // 前進
         let speed = Math.round(Math.map(Y_val, 550, 1023, 30, 255))
@@ -56,35 +47,38 @@ Gamepad.on_gamepad_state_received(function (
         maqueen.motorStop(maqueen.Motors.All)
     }
 
-    // 3. 按鈕 E / C 持續按下：控制 S1 伺服馬達角度 (0~180度)
-    if (E_is_pressed && servoAngle > 0) {
+    // 按鈕 E / C 持續按下：控制 S1 伺服馬達角度 (0~180度)
+    if (Gamepad.is_pressing(GamepadButton.E) && servoAngle > 0) {
         servoAngle = Math.max(0, servoAngle - 5)
         maqueen.servoRun(maqueen.Servos.S1, servoAngle)
-    } else if (C_is_pressed && servoAngle < 180) {
+    } else if (Gamepad.is_pressing(GamepadButton.C) && servoAngle < 180) {
         servoAngle = Math.min(180, servoAngle + 5)
         maqueen.servoRun(maqueen.Servos.S1, servoAngle)
     }
+})
 
-    // 4. 按鈕 F / D 剛被按下 (邊緣觸發)：切換左右車頭燈
-    if (Gamepad.is_button_pressed(GamepadButton.F, GamepadButtonState.IsPressed)) {
-        leftLedOn = !leftLedOn
-        maqueen.writeLED(
-            maqueen.LED.LEDLeft,
-            leftLedOn ? maqueen.LEDswitch.turnOn : maqueen.LEDswitch.turnOff
-        )
-    }
-    if (Gamepad.is_button_pressed(GamepadButton.D, GamepadButtonState.IsPressed)) {
-        rightLedOn = !rightLedOn
-        maqueen.writeLED(
-            maqueen.LED.LEDRight,
-            rightLedOn ? maqueen.LEDswitch.turnOn : maqueen.LEDswitch.turnOff
-        )
-    }
+// 2. 按鈕 F / D 按下 (邊緣觸發)：切換左右車頭燈
+Gamepad.on_button_edge_received(GamepadButton.F, GamepadButtonEdge.Down, function () {
+    leftLedOn = !leftLedOn
+    maqueen.writeLED(
+        maqueen.LED.LEDLeft,
+        leftLedOn ? maqueen.LEDswitch.turnOn : maqueen.LEDswitch.turnOff
+    )
+})
 
-    // 5. 按鈕 Z 剛被按下：播放喇叭音效
-    if (Gamepad.is_button_pressed(GamepadButton.Z, GamepadButtonState.IsPressed)) {
-        music.ringTone(523)
-    } else if (Gamepad.is_button_pressed(GamepadButton.Z, GamepadButtonState.IsReleased)) {
-        music.stopAllSounds()
-    }
+Gamepad.on_button_edge_received(GamepadButton.D, GamepadButtonEdge.Down, function () {
+    rightLedOn = !rightLedOn
+    maqueen.writeLED(
+        maqueen.LED.LEDRight,
+        rightLedOn ? maqueen.LEDswitch.turnOn : maqueen.LEDswitch.turnOff
+    )
+})
+
+// 3. 按鈕 Z 按下 / 放開 (邊緣觸發)：控制喇叭音效
+Gamepad.on_button_edge_received(GamepadButton.Z, GamepadButtonEdge.Down, function () {
+    music.ringTone(523)
+})
+
+Gamepad.on_button_edge_received(GamepadButton.Z, GamepadButtonEdge.Up, function () {
+    music.stopAllSounds()
 })

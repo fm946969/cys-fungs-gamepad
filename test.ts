@@ -20,6 +20,28 @@ Gamepad.on_gamepad_state_received(function (
     }
 })
 
+// 接收端：搖桿 X/Y 數值處理測試
+Gamepad.on_joystick_received(function (X_val, Y_val) {
+    let sum = X_val + Y_val
+})
+
+// 接收端：按鈕邊緣觸發 (按下 / 放開) 測試
+Gamepad.on_button_edge_received(GamepadButton.A, GamepadButtonEdge.Down, function () {
+    // A 按下邊緣觸發
+})
+
+Gamepad.on_button_edge_received(GamepadButton.A, GamepadButtonEdge.Up, function () {
+    // A 放開邊緣觸發
+})
+
+Gamepad.on_button_edge_received(GamepadButton.Z, GamepadButtonEdge.Down, function () {
+    // Z 按下邊緣觸發
+})
+
+Gamepad.on_button_edge_received(GamepadButton.Z, GamepadButtonEdge.Up, function () {
+    // Z 放開邊緣觸發
+})
+
 // 手把發送端測試
 basic.forever(function () {
     Gamepad.update()
