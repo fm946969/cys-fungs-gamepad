@@ -10,7 +10,9 @@
         "main.blocks",
         "main.ts",
         "README.md",
-        "gamepad.ts"
+        "gamepad.ts",
+        "gamepad_sender.ts",
+        "gamepad_receiver.ts"
     ],
     "testFiles": [
         "test.ts"

@@ -1,6 +1,6 @@
 
 /**
- * DFRobot DFR0536 遊戲手把擴充積木
+ * DFRobot DFR0536 遊戲手把擴充積木（共用積木與狀態）
  * 硬體規格：https://wiki.dfrobot.com/dfr0536/#tech_specs
  */
 
@@ -37,16 +37,6 @@ enum GamepadButtonState {
 }
 
 /**
- * 按鈕邊緣觸發列舉（接收端事件使用）
- */
-enum GamepadButtonEdge {
-    //% block="按下"
-    Down = 0,
-    //% block="放開"
-    Up = 1
-}
-
-/**
  * 搖桿軸向列舉
  */
 enum GamepadJoystickAxis {
@@ -57,31 +47,13 @@ enum GamepadJoystickAxis {
 }
 
 /**
- * 震動馬達開關列舉
- */
-enum GamepadVibrator {
-    //% block="開啟"
-    On = 1,
-    //% block="關閉"
-    Off = 0
-}
-
-/**
  * Gamepad 遊戲手把積木
  */
 //% weight=100 color=#0fbc11 icon="\uf11b" block="Gamepad"
+//% subcategories='["發送端", "接收端"]'
 namespace Gamepad {
-    const BUTTON_COUNT = 7;
-    const BUTTON_NAMES = ["A", "B", "C", "D", "E", "F", "Z"];
-    const BUTTON_PINS = [
-        DigitalPin.P5,  // A
-        DigitalPin.P11, // B
-        DigitalPin.P13, // C
-        DigitalPin.P14, // D
-        DigitalPin.P15, // E
-        DigitalPin.P16, // F
-        DigitalPin.P8   // Z
-    ];
+    export const __BUTTON_COUNT = 7;
+    export const __BUTTON_NAMES = ["A", "B", "C", "D", "E", "F", "Z"];
 
     // LED 矩陣顯示座標：
     // 第1列 (row 0): A(0,0), B(1,0)
@@ -90,57 +62,31 @@ namespace Gamepad {
     const LED_X = [0, 1, 0, 1, 2, 3, 0];
     const LED_Y = [0, 0, 1, 1, 1, 1, 2];
 
-    let pinsInitialized = false;
     let currentButtons: boolean[] = [false, false, false, false, false, false, false];
     let previousButtons: boolean[] = [false, false, false, false, false, false, false];
     let joystickX = 512;
     let joystickY = 512;
 
-    const noop = () => { };
-    let stateReceivedHandler: (
-        X_val: number,
-        Y_val: number,
-        A_is_pressed: boolean,
-        B_is_pressed: boolean,
-        C_is_pressed: boolean,
-        D_is_pressed: boolean,
-        E_is_pressed: boolean,
-        F_is_pressed: boolean,
-        Z_is_pressed: boolean
-    ) => void;
-    let joystickReceivedHandler: (X_val: number, Y_val: number) => void;
-    let buttonDownHandlers: (() => void)[] = [noop, noop, noop, noop, noop, noop, noop];
-    let buttonUpHandlers: (() => void)[] = [noop, noop, noop, noop, noop, noop, noop];
-    let radioListenerRegistered = false;
-
-    function initPins(): void {
-        if (pinsInitialized) {
-            return;
-        }
-        pins.setPull(DigitalPin.P5, PinPullMode.PullUp);
-        pins.setPull(DigitalPin.P11, PinPullMode.PullUp);
-        pins.setPull(DigitalPin.P13, PinPullMode.PullNone);
-        pins.setPull(DigitalPin.P14, PinPullMode.PullNone);
-        pins.setPull(DigitalPin.P15, PinPullMode.PullNone);
-        pins.setPull(DigitalPin.P16, PinPullMode.PullNone);
-        pins.setPull(DigitalPin.P8, PinPullMode.PullNone);
-        pinsInitialized = true;
+    //% blockHidden=true
+    export function __updateButton(index: number, pressed: boolean): void {
+        previousButtons[index] = currentButtons[index];
+        currentButtons[index] = pressed;
     }
 
-    /**
-     * 更新手把狀態（讀取搖桿與所有按鈕的最新狀態）
-     */
-    //% blockId="gamepad_update"
-    //% block="更新手把狀態"
-    //% weight=100
-    export function update(): void {
-        initPins();
-        for (let i = 0; i < BUTTON_COUNT; i++) {
-            previousButtons[i] = currentButtons[i];
-            currentButtons[i] = pins.digitalReadPin(BUTTON_PINS[i]) == 0;
-        }
-        joystickX = pins.analogReadPin(AnalogPin.P1);
-        joystickY = pins.analogReadPin(AnalogPin.P2);
+    //% blockHidden=true
+    export function __setJoystick(x: number, y: number): void {
+        joystickX = x;
+        joystickY = y;
+    }
+
+    //% blockHidden=true
+    export function __isButtonIndexPressing(index: number): boolean {
+        return currentButtons[index];
+    }
+
+    //% blockHidden=true
+    export function __wasButtonIndexPressed(index: number): boolean {
+        return previousButtons[index];
     }
 
     /**
@@ -215,32 +161,6 @@ namespace Gamepad {
     }
 
     /**
-     * 控制震動馬達與指示燈開關 (P12 類比輸出)
-     * @param state 開啟或關閉
-     */
-    //% blockId="gamepad_vibrator"
-    //% block="震動馬達 %state"
-    //% weight=80
-    export function vibrator(state: GamepadVibrator): void {
-        initPins();
-        pins.analogWritePin(AnalogPin.P12, state == GamepadVibrator.On ? 1023 : 0);
-    }
-
-    /**
-     * 設定震動馬達強度 (P12 類比輸出 0~1023)
-     * @param intensity 震動強度 (0~1023), eg: 1023
-     */
-    //% blockId="gamepad_vibrator_intensity"
-    //% block="震動馬達強度 %intensity"
-    //% intensity.min=0 intensity.max=1023 intensity.defl=1023
-    //% weight=75
-    export function vibrator_intensity(intensity: number): void {
-        initPins();
-        let val = Math.clamp(0, 1023, intensity);
-        pins.analogWritePin(AnalogPin.P12, val);
-    }
-
-    /**
      * 在 micro:bit LED 矩陣上顯示按鈕狀態
      * 第1列：A(0,0), B(1,0)
      * 第2列：C(0,1), D(1,1), E(2,1), F(3,1)
@@ -250,145 +170,12 @@ namespace Gamepad {
     //% block="顯示按鈕狀態"
     //% weight=70
     export function show_button_state(): void {
-        for (let i = 0; i < BUTTON_COUNT; i++) {
+        for (let i = 0; i < __BUTTON_COUNT; i++) {
             if (currentButtons[i]) {
                 led.plot(LED_X[i], LED_Y[i]);
             } else {
                 led.unplot(LED_X[i], LED_Y[i]);
             }
         }
-    }
-
-    /**
-     * 透過廣播 (Radio) 發送手把狀態：X軸,Y軸,<按下的按鈕>
-     */
-    //% blockId="gamepad_send_button_state"
-    //% block="廣播手把狀態"
-    //% weight=60
-    export function send_button_state(): void {
-        let pressed = "";
-        for (let i = 0; i < BUTTON_COUNT; i++) {
-            if (currentButtons[i]) {
-                pressed += BUTTON_NAMES[i];
-            }
-        }
-        radio.sendString("" + joystickX + "," + joystickY + "," + pressed);
-    }
-
-    function ensureRadioListener(): void {
-        if (radioListenerRegistered) {
-            return;
-        }
-        radioListenerRegistered = true;
-        radio.onReceivedString(function (receivedString: string) {
-            let parts = receivedString.split(",");
-            if (parts.length < 3) {
-                return;
-            }
-            let x = parseInt(parts[0]);
-            let y = parseInt(parts[1]);
-            if (isNaN(x) || isNaN(y)) {
-                return;
-            }
-            let buttonsStr = parts[2];
-            joystickX = x;
-            joystickY = y;
-            for (let i = 0; i < BUTTON_COUNT; i++) {
-                previousButtons[i] = currentButtons[i];
-                currentButtons[i] = buttonsStr.indexOf(BUTTON_NAMES[i]) >= 0;
-            }
-            if (stateReceivedHandler) {
-                stateReceivedHandler(
-                    joystickX,
-                    joystickY,
-                    currentButtons[0],
-                    currentButtons[1],
-                    currentButtons[2],
-                    currentButtons[3],
-                    currentButtons[4],
-                    currentButtons[5],
-                    currentButtons[6]
-                );
-            }
-            if (joystickReceivedHandler) {
-                joystickReceivedHandler(joystickX, joystickY);
-            }
-            for (let i = 0; i < BUTTON_COUNT; i++) {
-                if (currentButtons[i] && !previousButtons[i]) {
-                    let downHandler = buttonDownHandlers[i];
-                    if (downHandler !== noop) {
-                        downHandler();
-                    }
-                } else if (!currentButtons[i] && previousButtons[i]) {
-                    let upHandler = buttonUpHandlers[i];
-                    if (upHandler !== noop) {
-                        upHandler();
-                    }
-                }
-            }
-        });
-    }
-
-    /**
-     * 當收到手把廣播狀態時執行（同時更新內部手把狀態，方便搭配其他積木使用）
-     */
-    //% blockId="gamepad_on_state_received"
-    //% block="當收到手把狀態時"
-    //% draggableParameters="reporter"
-    //% weight=50
-    export function on_gamepad_state_received(
-        handler: (
-            X_val: number,
-            Y_val: number,
-            A_is_pressed: boolean,
-            B_is_pressed: boolean,
-            C_is_pressed: boolean,
-            D_is_pressed: boolean,
-            E_is_pressed: boolean,
-            F_is_pressed: boolean,
-            Z_is_pressed: boolean
-        ) => void
-    ): void {
-        stateReceivedHandler = handler;
-        ensureRadioListener();
-    }
-
-    /**
-     * 當收到手把搖桿 X/Y 數值時執行（每次收到廣播封包時觸發）
-     */
-    //% blockId="gamepad_on_joystick_received"
-    //% block="當收到搖桿數值時"
-    //% draggableParameters="reporter"
-    //% weight=45
-    export function on_joystick_received(
-        handler: (X_val: number, Y_val: number) => void
-    ): void {
-        joystickReceivedHandler = handler;
-        ensureRadioListener();
-    }
-
-    /**
-     * 當收到手把指定按鈕按下或放開（邊緣觸發）時執行
-     * @param button 要監聽的按鈕
-     * @param edge 按下或放開邊緣事件
-     */
-    //% blockId="gamepad_on_button_edge_received"
-    //% block="當收到按鈕 %button %edge 時"
-    //% weight=40
-    export function on_button_edge_received(
-        button: GamepadButton,
-        edge: GamepadButtonEdge,
-        handler: () => void
-    ): void {
-        let idx = <number>button;
-        if (idx < 0 || idx >= BUTTON_COUNT) {
-            return;
-        }
-        if (edge == GamepadButtonEdge.Down) {
-            buttonDownHandlers[idx] = handler;
-        } else if (edge == GamepadButtonEdge.Up) {
-            buttonUpHandlers[idx] = handler;
-        }
-        ensureRadioListener();
     }
 }
