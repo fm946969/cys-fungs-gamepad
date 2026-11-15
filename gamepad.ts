@@ -50,9 +50,12 @@ enum GamepadJoystickAxis {
  * Gamepad 遊戲手把積木
  */
 //% weight=100 color=#0fbc11 icon="\uf11b" block="Gamepad"
-//% groups='["發送端", "接收端"]'
+//% subcategories='["發送端", "接收端"]'
+//% groups='["共用 - 狀態讀取", "共用 - LED 顯示", "狀態與廣播", "震動馬達", "狀態與搖桿事件", "按鈕邊緣事件"]'
 namespace Gamepad {
+    //% blockHidden=true hidden=true
     export const __BUTTON_COUNT = 7;
+    //% blockHidden=true hidden=true
     export const __BUTTON_NAMES = ["A", "B", "C", "D", "E", "F", "Z"];
 
     // LED 矩陣顯示座標：
@@ -67,24 +70,24 @@ namespace Gamepad {
     let joystickX = 512;
     let joystickY = 512;
 
-    //% blockHidden=true
+    //% blockHidden=true hidden=true
     export function __updateButton(index: number, pressed: boolean): void {
         previousButtons[index] = currentButtons[index];
         currentButtons[index] = pressed;
     }
 
-    //% blockHidden=true
+    //% blockHidden=true hidden=true
     export function __setJoystick(x: number, y: number): void {
         joystickX = x;
         joystickY = y;
     }
 
-    //% blockHidden=true
+    //% blockHidden=true hidden=true
     export function __isButtonIndexPressing(index: number): boolean {
         return currentButtons[index];
     }
 
-    //% blockHidden=true
+    //% blockHidden=true hidden=true
     export function __wasButtonIndexPressed(index: number): boolean {
         return previousButtons[index];
     }
@@ -96,6 +99,7 @@ namespace Gamepad {
      */
     //% blockId="gamepad_is_button_pressed"
     //% block="按鈕 %button %state"
+    //% group="共用 - 狀態讀取"
     //% weight=90
     export function is_button_pressed(
         button: GamepadButton,
@@ -152,6 +156,7 @@ namespace Gamepad {
      */
     //% blockId="gamepad_get_joystick"
     //% block="搖桿 %axis 數值"
+    //% group="共用 - 狀態讀取"
     //% weight=85
     export function get_joystick(axis: GamepadJoystickAxis): number {
         if (axis == GamepadJoystickAxis.X) {
@@ -168,6 +173,7 @@ namespace Gamepad {
      */
     //% blockId="gamepad_show_button_state"
     //% block="顯示按鈕狀態"
+    //% group="共用 - LED 顯示"
     //% weight=70
     export function show_button_state(): void {
         for (let i = 0; i < __BUTTON_COUNT; i++) {

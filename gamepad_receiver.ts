@@ -12,9 +12,7 @@ enum GamepadButtonEdge {
     Up = 1
 }
 
-//% group="接收端"
-//% weight=100 icon="\uf48b" block="接收端"
-namespace Gamepad_Receiver {
+namespace Gamepad {
     const noop = () => { };
     let stateReceivedHandler: (
         X_val: number,
@@ -39,44 +37,54 @@ namespace Gamepad_Receiver {
         radioListenerRegistered = true;
         radio.onReceivedString(function (receivedString: string) {
             let parts = receivedString.split(",");
-            if (parts.length < 3) {
+            if (parts.length != 3 || parts[0].length == 0 || parts[1].length == 0) {
                 return;
             }
-            let x = parseInt(parts[0]);
-            let y = parseInt(parts[1]);
-            if (isNaN(x) || isNaN(y)) {
+            let rawX = parseInt(parts[0]);
+            let rawY = parseInt(parts[1]);
+            if (isNaN(rawX) || isNaN(rawY)) {
                 return;
             }
+            let x = Math.clamp(0, 1023, rawX);
+            let y = Math.clamp(0, 1023, rawY);
             let buttonsStr = parts[2];
+
+            // 先快照邊緣變化，避免使用者事件處理器內 pause 讓出執行緒時遺失邊緣觸發
+            let downMask = 0;
+            let upMask = 0;
             __setJoystick(x, y);
             for (let i = 0; i < __BUTTON_COUNT; i++) {
-                __updateButton(i, buttonsStr.indexOf(__BUTTON_NAMES[i]) >= 0);
+                let wasPressed = __isButtonIndexPressing(i);
+                let nowPressed = buttonsStr.indexOf(__BUTTON_NAMES[i]) >= 0;
+                __updateButton(i, nowPressed);
+                if (nowPressed && !wasPressed) {
+                    downMask |= (1 << i);
+                } else if (!nowPressed && wasPressed) {
+                    upMask |= (1 << i);
+                }
             }
+
+            let a = (buttonsStr.indexOf("A") >= 0);
+            let b = (buttonsStr.indexOf("B") >= 0);
+            let c = (buttonsStr.indexOf("C") >= 0);
+            let d = (buttonsStr.indexOf("D") >= 0);
+            let e = (buttonsStr.indexOf("E") >= 0);
+            let f = (buttonsStr.indexOf("F") >= 0);
+            let z = (buttonsStr.indexOf("Z") >= 0);
+
             if (stateReceivedHandler) {
-                stateReceivedHandler(
-                    x,
-                    y,
-                    __isButtonIndexPressing(0),
-                    __isButtonIndexPressing(1),
-                    __isButtonIndexPressing(2),
-                    __isButtonIndexPressing(3),
-                    __isButtonIndexPressing(4),
-                    __isButtonIndexPressing(5),
-                    __isButtonIndexPressing(6)
-                );
+                stateReceivedHandler(x, y, a, b, c, d, e, f, z);
             }
             if (joystickReceivedHandler) {
                 joystickReceivedHandler(x, y);
             }
             for (let i = 0; i < __BUTTON_COUNT; i++) {
-                let curr = __isButtonIndexPressing(i);
-                let prev = __wasButtonIndexPressed(i);
-                if (curr && !prev) {
+                if ((downMask & (1 << i)) != 0) {
                     let downHandler = buttonDownHandlers[i];
                     if (downHandler !== noop) {
                         downHandler();
                     }
-                } else if (!curr && prev) {
+                } else if ((upMask & (1 << i)) != 0) {
                     let upHandler = buttonUpHandlers[i];
                     if (upHandler !== noop) {
                         upHandler();
@@ -93,6 +101,7 @@ namespace Gamepad_Receiver {
     //% block="當收到手把狀態時"
     //% draggableParameters="reporter"
     //% subcategory="接收端"
+    //% group="狀態與搖桿事件"
     //% weight=100
     export function on_gamepad_state_received(
         handler: (
@@ -118,6 +127,7 @@ namespace Gamepad_Receiver {
     //% block="當收到搖桿數值時"
     //% draggableParameters="reporter"
     //% subcategory="接收端"
+    //% group="狀態與搖桿事件"
     //% weight=90
     export function on_joystick_received(
         handler: (X_val: number, Y_val: number) => void
@@ -134,6 +144,7 @@ namespace Gamepad_Receiver {
     //% blockId="gamepad_on_button_edge_received"
     //% block="當收到按鈕 %button %edge 時"
     //% subcategory="接收端"
+    //% group="按鈕邊緣事件"
     //% weight=80
     export function on_button_edge_received(
         button: GamepadButton,

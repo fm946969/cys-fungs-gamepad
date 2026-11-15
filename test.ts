@@ -48,6 +48,12 @@ basic.forever(function () {
     Gamepad.show_button_state()
     Gamepad.send_button_state()
 
+    let x = Gamepad.get_joystick(GamepadJoystickAxis.X)
+    let y = Gamepad.get_joystick(GamepadJoystickAxis.Y)
+    if (x < 0 || y < 0) {
+        Gamepad.vibrator_intensity(512)
+    }
+
     if (Gamepad.is_button_pressed(GamepadButton.Z, GamepadButtonState.IsPressed)) {
         Gamepad.vibrator(GamepadVibrator.On)
     } else if (Gamepad.is_button_pressed(GamepadButton.Z, GamepadButtonState.IsReleased)) {

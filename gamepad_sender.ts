@@ -12,9 +12,7 @@ enum GamepadVibrator {
     Off = 0
 }
 
-//% group="發送端"
-//% weight=100 icon="\uf11b" block="發送端"
-namespace Gamepad_Sender {
+namespace Gamepad {
     const BUTTON_PINS = [
         DigitalPin.P5,  // A
         DigitalPin.P11, // B
@@ -27,7 +25,7 @@ namespace Gamepad_Sender {
 
     let pinsInitialized = false;
 
-    function initPins(): void {
+    function initButtonPins(): void {
         if (pinsInitialized) {
             return;
         }
@@ -47,9 +45,10 @@ namespace Gamepad_Sender {
     //% blockId="gamepad_update"
     //% block="更新手把狀態"
     //% subcategory="發送端"
+    //% group="狀態與廣播"
     //% weight=100
     export function update(): void {
-        initPins();
+        initButtonPins();
         for (let i = 0; i < __BUTTON_COUNT; i++) {
             __updateButton(i, pins.digitalReadPin(BUTTON_PINS[i]) == 0);
         }
@@ -65,6 +64,7 @@ namespace Gamepad_Sender {
     //% blockId="gamepad_send_button_state"
     //% block="廣播手把狀態"
     //% subcategory="發送端"
+    //% group="狀態與廣播"
     //% weight=90
     export function send_button_state(): void {
         let pressed = "";
@@ -85,9 +85,9 @@ namespace Gamepad_Sender {
     //% blockId="gamepad_vibrator"
     //% block="震動馬達 %state"
     //% subcategory="發送端"
+    //% group="震動馬達"
     //% weight=80
     export function vibrator(state: GamepadVibrator): void {
-        initPins();
         pins.analogWritePin(AnalogPin.P12, state == GamepadVibrator.On ? 1023 : 0);
     }
 
@@ -99,9 +99,9 @@ namespace Gamepad_Sender {
     //% block="震動馬達強度 %intensity"
     //% intensity.min=0 intensity.max=1023 intensity.defl=1023
     //% subcategory="發送端"
+    //% group="震動馬達"
     //% weight=75
     export function vibrator_intensity(intensity: number): void {
-        initPins();
         let val = Math.clamp(0, 1023, intensity);
         pins.analogWritePin(AnalogPin.P12, val);
     }
